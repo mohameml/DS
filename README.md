@@ -1,0 +1,2 @@
+# DS
+dépendance stochastique
