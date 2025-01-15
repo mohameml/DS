@@ -1,0 +1,339 @@
+---
+title: "TP1"
+author: "MOHAMED_AHMED_MOHAMED_LEMINE ~~  Mohamedou_Chrif_M'Hamed"
+documentclass: article
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+---
+
+<!-- see help at https://bookdown.org/yihui/rmarkdown-cookbook/latex-output.html -->
+
+```{r setup, include=FALSE, message=FALSE}
+#see full list >knitr::opts_chunk$get()
+knitr::opts_chunk$set(echo = TRUE, fig.align="center", prompt = TRUE, comment="")
+```
+
+
+# Exercise 1 -- copule logistique
+
+$$
+C(u,v) = 1/(1/u+1/v-1)
+$$
+
+## Question 1
+
+On a $V|U=u$ a pour FDR 
+$$
+F_{V|U=u}(v) = \frac{1}{ (1+\frac{u}{v} - u)^2 }
+$$
+
+donc on trouve l'inverse de FDR de $V|U=u$
+
+$$
+F^{-1}_{V|U=u}(p) = \frac{u}{u - 1 +  \frac{1}{\sqrt{p}}}
+$$
+
+
+L'algorithme est le suivant :  
+
+1. Simulation de \( U \), qui suit une loi uniforme sur \([0,1]\).  
+2. Simulation de \( W \), qui suit également une loi uniforme sur \([0,1]\).  
+3. Simulation de \( V \) à l'aide de la méthode d'inversion de la fonction de répartition conditionnelle en utilisant \( F^{-1}_{V|U=u}(w) \).  
+
+Ainsi, on obtient le couple \((u, v)\), une simulation de \((U, V)\) selon la copule \( C \).  
+
+
+
+
+
+
+## Question 2 :
+
+```{r}
+rcoplogis <- function(n) {
+  u <- runif(n)
+  w <- runif(n)
+  v <- u / (u - 1 + 1/sqrt(w))
+  return(cbind(u,v))
+}
+
+```
+
+
+- test avec n = 1000 :
+
+```{r}
+res <- rcoplogis(1000)
+plot(res ,pch=16)
+```
+
+
+
+
+## Question 3 :
+
+
+```{r}
+mecdf <- function(xy)
+{
+  f <- function(x,y)
+  {
+    mean(xy[, 1] <= x & xy[, 2] <= y)
+  }
+  Vectorize(f, c("x", "y"))
+  
+}
+```
+
+
+-Ce code définit une fonction qui estime empiriquement la fonction copule \(C(u, v)\) en \((u, v)\), en utilisant une approche basée sur la proportion des observations dans un tableau \((xy)\) satisfaisant \(X \leq u\) et \(Y \leq v\).
+
+
+
+
+
+## Question 4
+
+```{r}
+pcoplogis <- function(u,v) {
+  res <- 1 / (1/u + 1/v -1)
+  return(res)
+}
+
+```
+
+
+## Question 5
+
+```{r}
+grille <- cbind(1/1:10, 1/2:11)
+
+# méthode théorique : 
+
+theo_cop <- pcoplogis(grille[,1] , grille[,2])
+
+# méthode empirique : 
+
+simu_u_v <- rcoplogis(1000)
+
+emp_cop <- mecdf(simu_u_v)(grille[,1] , grille[,2])
+
+# Affichage des Res : 
+
+cbind("theo"=theo_cop, "emp"=emp_cop)
+
+```
+
+
+## Question 6
+
+```{r}
+m <- 100
+verif <- cbind(runif(m) , runif(m))
+simu <- rcoplogis(1000)
+
+error <- function(verif , simu) 
+{
+    ptheao <- pcoplogis(grille[,1] , grille[,2])
+    pemp <- mecdf(simu)(grille[,1] , grille[,2])
+    mean(abs(ptheao - pemp))
+} 
+
+error(verif , simu)
+```
+- donc on trouve que l’écart absolu moyen entre les fonctions de répartition jointe 
+est de l'ordre $0.019$.
+
+
+
+## Question 7
+
+
+les résultats théoriques qu'on a trouvés dans le TD sont que :
+
+$$
+\lambda_L = \frac{1}{2} \\
+et \\
+\lambda_U = 0 
+$$
+
+```{r}
+library(copula)
+simu <- rcoplogis(1e5)
+ # Lambda L 
+fitLambda(simu)[1,2]
+ # Lambda U 
+fitLambda(simu , lower = FALSE)[1,2]
+```
+on trouve des résultats empiriques très proches de ceux théoriques avec $\lambda_{L,emp} = 0.63$ et $\lambda_{U,emp} = 0.003$
+
+## Question 8
+
+```{r}
+rcop <- function(n) {
+  results  <- replicate(n, {
+    e <- rexp(1)
+    ech <- rexp(2, rate = e)
+    u <- 1 / (1 + ech)
+    return(u)
+  })
+  
+   res <- cbind(u = results[1, ], v = results[2, ])
+
+   return(res)
+}
+
+```
+
+
+- Test avce n = 1000
+
+```{r}
+plot(rcop(1000) , pch=16)
+```
+- Comparaison avec la fonction C théo : 
+
+```{r}
+grille <- cbind(1/1:10, 1/2:11)
+
+# méthode théorique : 
+
+theo_cop <- pcoplogis(grille[,1] , grille[,2])
+
+# méthode empirique : 
+
+simu_u_v <- rcop(1000)
+
+emp_cop <- mecdf(simu_u_v)(grille[,1] , grille[,2])
+
+# Affichage des Res : 
+
+cbind("theo"=theo_cop, "emp"=emp_cop)
+```
+- calcul de l’écart absolu moyen: 
+
+```{r}
+m <- 100
+verif <- cbind(runif(m) , runif(m))
+simu_u_v <- rcop(1000)
+error(verif , simu_u_v)
+```
+donc on trouve que l'écart absolu moyen entre les fonctions de répartition jointe 
+est de l'ordre $0.008$ qui est très petite par rapport à la méthode de simulation précédente .
+ 
+
+## Question 9
+
+```{r}
+library(copula)
+n <- 1e3
+uv1 <- rcoplogis(n)
+C.hat <- empCopula(uv1, smoothing = "beta")
+
+contourplot2(C.hat, FUN=dCopula, main="niveaux de densité",
+        col.regions=colorRampPalette( c("white", "green", "yellow", "orange", "red") )(16))
+
+n.col <- 100
+mycolpal <- colorRampPalette( c("white","green", "yellow", "orange", "red") )(n.col)
+n.grid <- 26
+zmat <- as.matrix(expand.grid(seq(0, 1, length=n.grid),
+                              seq(0, 1, length=n.grid)))
+zmat <- matrix(dCopula(zmat, C.hat), ncol=n.grid)
+nrz <- nrow(zmat)
+ncz <- ncol(zmat)
+zctr <- zmat[-1, -1] + zmat[-1, -ncz] + zmat[-nrz, -1] + zmat[-nrz, -ncz]
+# Recode facet z-values into color indices
+facetcol <- cut(zctr, n.col)
+
+persp(C.hat, FUN=dCopula, col=mycolpal[facetcol], n.grid=n.grid)
+
+```
+
+
+## Question 10
+
+```{r}
+
+f_inv <- function(x) 
+{
+  res <- log(x/(1-x))
+}
+
+
+
+rcopxy <- function(n)
+{
+  # simulation de (u,v) = (F_1(X) , F_2(Y))
+  uv <- rcop(n)
+  
+  # simulation de X,Y 
+  xy <- cbind(f_inv(uv[,1]) , f_inv(uv[,2]))
+  
+  return(xy)
+}
+
+```
+
+
+
+- Test avec n = 1000 :
+
+```{r}
+n = 1000
+xy <- rcopxy(n)
+plot(xy , pch=16 , xlab="x" , ylab="y" , main="Densite")
+```
+
+- pour valider la fonction de simulation, on peut comparer le graphe de densité avec celui théorique. On a  : 
+$$
+f_{X,Y}(x,y) = \frac{e^{-x}e^{-y}}{(1+e^{-x}+e^{-y})^3}
+$$
+
+```{r}
+# Définition de la fonction de densité f(x, y)
+f_xy <- function(x, y) {
+  a <- exp(-x) * exp(-y)
+  b <- (1 + exp(-x) + exp(-y))^3
+  return(a / b)
+}
+
+# Créer une grille de valeurs pour x et y
+x_vals <- seq(-5, 5, length.out = 100)
+y_vals <- seq(-5, 5, length.out = 100)
+
+# Créer la grille 2D
+grid <- expand.grid(x = x_vals, y = y_vals)
+
+# Calculer la densité f(x, y) pour chaque point de la grille
+grid$f_xy <- mapply(f_xy, grid$x, grid$y)
+
+# Tracer la densité avec un graphique contour
+library(ggplot2)
+ggplot(grid, aes(x = x, y = y, z = f_xy)) +
+  geom_tile(aes(fill = f_xy), width = 0.1, height = 0.1) +
+  scale_fill_viridis_c() + 
+  labs(title = "Densité f(x, y)", x = "x", y = "y", fill = "f(x, y)") +
+  theme_minimal()
+
+```
+
+
+- donc on observe que l'on trouve la même densité graphiquement, ce qui valide la méthode de simulation de X, Y .
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
