@@ -1,0 +1,131 @@
+---
+title: "TP2"
+author: "A REMPLIR"
+documentclass: article
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+---
+
+<!-- see help at https://bookdown.org/yihui/rmarkdown-cookbook/latex-output.html -->
+
+```{r setup, include=FALSE, message=FALSE}
+#see full list >knitr::opts_chunk$get()
+knitr::opts_chunk$set(echo = TRUE, fig.align="center", prompt = TRUE, comment="")
+```
+
+
+# Exercise 1
+
+## Question 1
+
+```{r}
+
+rX <- function(nbsimu , N  , rhopar)
+{
+    D <- diag(sqrt(1 - rhopar^2) , N)
+    A <- cbind(rhopar , D)
+    res <- replicate(nbsimu ,  {
+          W <- rnorm(N+1)
+          X <- A %*%  W
+          as.vector(X)
+    })
+    return(t(res))
+
+}
+
+
+rX(3 , 10 , 0.5)
+```
+
+
+## Question 2
+
+```{r}
+
+rD <- function(x_i)
+{
+  q <- qnorm(x_i)
+  d_i <- rbinom(1 , prob = q)
+  return(q)
+}
+
+rD(1.2)
+```
+
+
+## Question 3
+
+```{r}
+
+qv <- function(qpar ,rhopar ,  v)
+{
+  pnorm((qnorm(qpar) - rhopar*v)/sqrt(1- rhopar^2))
+  
+}
+
+dDtot <- function(d , qpar ,rhopar , N)
+{
+  f <- function(v , d){
+    dbinom(d , size = N , prob = qv(qpar , rhopar , v ))*dnorm(v)
+  }
+  prob <- function(d)
+    integrate(f , -Inf , Inf , d=d)$value
+  sapply(d, prob)
+  
+}
+
+dDtot(0:3 , 0.1 , 1/2 , 10)
+
+```
+
+
+
+
+## Question 4
+
+- Simuler 100 000 variables pour les 3 tranches et vérifier leur dépendance : 
+
+```{r}
+
+ # prix
+
+T_eq <- min(Dtot)
+
+```
+
+
+
+
+
+
+## Question 5
+
+```{r}
+
+```
+
+
+## Question 6
+
+```{r}
+
+```
+
+
+## Question 7
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
