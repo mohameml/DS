@@ -1,0 +1,217 @@
+
+
+### Question 01 :
+
+```{r}
+canlifeins <- read.csv("canlifins.csv")
+
+head(canlifeins)
+```
+
+### Question 02 :
+
+
+
+
+```{r}
+cor(canlifeins , method = "p")
+cor(canlifeins , method = "k")
+cor(canlifeins , method = "s")
+summary(canlifeins)
+```
+
+
+
+```{r}
+library(copula)
+
+par(mar=c(4,4,1,1))
+plot(pobs(canlifeins) , pch=".")
+
+
+```
+
+
+### Question 03 :
+
+```{r}
+# ?fitCopula
+
+# Copule Gaussienne (elliptique)
+gaussian_cop <- normalCopula(param = 0.5)  
+fit_gaussian <- fitCopula(gaussian_cop, canlifeins, method = "ml")
+
+```
+
+
+
+```{r}
+# Chargement du package copula
+library(copula)
+
+# Exemple de données (deux variables X et Y)
+data <- pobs(canlifeins)  # Remplacez par vos données
+
+# Copule Gaussienne (elliptique)
+gaussian_cop <- normalCopula(param = 0.5)  # Paramètre initial de corrélation
+fit_gaussian <- fitCopula(gaussian_cop, data, method = "ml")
+
+# Copule t de Student (elliptique)
+student_cop <- tCopula(param = 0.5, df = 4)  # Paramètre initial et degrés de liberté
+fit_student <- fitCopula(student_cop, data, method = "ml")
+
+# Copule Clayton (archimédienne)
+clayton_cop <- claytonCopula(param = 2)  # Paramètre initial de dépendance
+fit_clayton <- fitCopula(clayton_cop, data, method = "ml")
+
+# Copule Frank (archimédienne)
+frank_cop <- frankCopula(param = 3)  # Paramètre initial de dépendance
+fit_frank <- fitCopula(frank_cop, data, method = "ml")
+
+# Copule Gumbel (archimédienne)
+gumbel_cop <- gumbelCopula(param = 2)  # Paramètre initial de dépendance
+fit_gumbel <- fitCopula(gumbel_cop, data, method = "ml")
+
+# Copule Joe (archimédienne)
+joe_cop <- joeCopula(param = 2)  # Paramètre initial de dépendance
+fit_joe <- fitCopula(joe_cop, data, method = "ml")
+
+# Affichage des résultats
+summary(fit_gaussian)
+summary(fit_student)
+summary(fit_clayton)
+summary(fit_frank)
+summary(fit_gumbel)
+summary(fit_joe)
+
+```
+
+
+
+### Question 04 :
+
+```{r}
+
+# Chargement des packages nécessaires
+library(fitdistrplus)
+library(copula)
+
+
+
+# 1. Estimation des marges avec fitdistrplus
+
+# Estimation de la marge pour la première variable (lognormal)
+fit_marge1 <- fitdist(data[,1], "lnorm")  # Ajustement d'une loi lognormale
+summary(fit_marge1)
+
+# Estimation de la marge pour la deuxième variable (Weibull)
+fit_marge2 <- fitdist(data[,2], "weibull")  # Ajustement d'une loi Weibull
+summary(fit_marge2)
+
+# Autres marges possibles : Gamma, Loglogistique
+fit_marge3 <- fitdist(data[,1], "gamma")  # Ajustement d'une loi Gamma
+fit_marge4 <- fitdist(data[,2], "llogis")  # Ajustement d'une loi Loglogistique
+
+# 2. Estimation de la copule
+# Copule gaussienne (elliptique)
+gaussian_cop <- normalCopula(param = 0.5)  # Paramètre de dépendance initial
+fit_gaussian <- fitCopula(gaussian_cop, data, method = "ml")
+
+# Copule Clayton (archimédienne)
+clayton_cop <- claytonCopula(param = 2)  # Paramètre de dépendance initial
+fit_clayton <- fitCopula(clayton_cop, data, method = "ml")
+
+# 3. Combinaison des marges et de la copule
+# Par exemple, pour une copule gaussienne et des marges lognormales et Weibull :
+cop_gaussian <- normalCopula(param = fit_gaussian@parameters)
+fit_gaussian_copula <- fitCopula(cop_gaussian, data, method = "ml")
+
+# Affichage des résultats
+summary(fit_marge1)  # Résultats de la première marge
+summary(fit_marge2)  # Résultats de la deuxième marge
+summary(fit_marge3)  # Résultats de la troisième marge
+summary(fit_marge4)  # Résultats de la quatrième marge
+
+summary(fit_gaussian)  # Résultats de la copule gaussienne
+summary(fit_clayton)   # Résultats de la copule Clayton
+
+```
+
+
+#### Rq :
+
+f_x <- fitdist(obs , "lnorm")
+plnorm(obs$x , delta_optim)
+
+pour le question Q3 et Q5 on calcul $u_i= F_{n,x}(x_i)$ on utilise la focntion do.cal("plnorm" , c(obs , aslist(coef(f_x))))
+
+
+```{r}
+fhomme <- fitdist(canlifeins$DeathAgeM , "lnorm")
+uhommee <- do.call("plnorm" , c(list(canlifeins$DeathAgeM)))
+as.list(coef(fhomme))
+
+```
+
+
+```{r}
+gofstat(fhomme)
+```
+
+
+```{r}
+cdfcomp(fhomme)
+```
+
+
+### Question 05 :
+
+
+
+
+
+### Question 06 :
+
+
+
+$H_{x,y} = F_xF_y$
+
+
+
+```{r}
+
+```
+
+
+### Question 07 :
+```{r}
+
+
+
+```
+
+
+
+### Question 08 : 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
